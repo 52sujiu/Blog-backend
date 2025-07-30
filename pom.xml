@@ -11,12 +11,12 @@
         <version>2.7.2</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.yupi</groupId>
-    <artifactId>springboot-init</artifactId>
+    <groupId>com.sujiu</groupId>
+    <artifactId>sujiu-blog</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>springboot-init</name>
+    <name>sujiu-blog</name>
     <properties>
-        <java.version>1.8</java.version>
+        <java.version>17</java.version>
     </properties>
     <dependencies>
         <dependency>
@@ -56,12 +56,17 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
         </dependency>
+        <!-- spring security crypto for password encoding -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-crypto</artifactId>
+        </dependency>
 
 
-        <!-- https://doc.xiaominfo.com/docs/quick-start#openapi2 -->
+        <!-- https://doc.xiaominfo.com/docs/quick-start#openapi3 -->
         <dependency>
             <groupId>com.github.xiaoymin</groupId>
-            <artifactId>knife4j-openapi2-spring-boot-starter</artifactId>
+            <artifactId>knife4j-openapi3-spring-boot-starter</artifactId>
             <version>4.4.0</version>
         </dependency>
         <!-- https://cloud.tencent.com/document/product/436/10199-->
@@ -96,6 +101,12 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- H2 Database for testing -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>

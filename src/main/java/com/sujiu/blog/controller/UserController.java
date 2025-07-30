@@ -1,292 +1,230 @@
 package com.sujiu.blog.controller;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.sujiu.blog.annotation.AuthCheck;
+import com.sujiu.blog.annotation.RequireLogin;
 import com.sujiu.blog.common.BaseResponse;
-import com.sujiu.blog.common.DeleteRequest;
 import com.sujiu.blog.common.ErrorCode;
 import com.sujiu.blog.common.ResultUtils;
-import com.sujiu.blog.constant.UserConstant;
 import com.sujiu.blog.exception.BusinessException;
-import com.sujiu.blog.exception.ThrowUtils;
-import com.sujiu.blog.model.dto.user.UserAddRequest;
+import com.sujiu.blog.model.dto.user.PasswordUpdateRequest;
 import com.sujiu.blog.model.dto.user.UserLoginRequest;
-import com.sujiu.blog.model.dto.user.UserQueryRequest;
 import com.sujiu.blog.model.dto.user.UserRegisterRequest;
-import com.sujiu.blog.model.dto.user.UserUpdateMyRequest;
 import com.sujiu.blog.model.dto.user.UserUpdateRequest;
-import com.sujiu.blog.model.entity.User;
-import com.sujiu.blog.model.vo.LoginUserVO;
-import com.sujiu.blog.model.vo.UserVO;
+import com.sujiu.blog.model.vo.user.LoginUserVO;
+import com.sujiu.blog.model.vo.user.UserRegisterVO;
+import com.sujiu.blog.model.vo.user.UserVO;
+import com.sujiu.blog.model.vo.common.PageVO;
+import com.sujiu.blog.service.FollowService;
 import com.sujiu.blog.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.BeanUtils;
-import org.springframework.util.DigestUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import static com.sujiu.blog.service.impl.UserServiceImpl.SALT;
 
 /**
  * 用户接口
  *
- * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
- * @from <a href="https://yupi.icu">编程导航知识星球</a>
+ * @author sujiu
  */
 @RestController
 @RequestMapping("/user")
 @Slf4j
+@Tag(name = "用户管理", description = "用户相关接口")
 public class UserController {
 
     @Resource
     private UserService userService;
 
-
-    // region 登录相关
+    @Resource
+    private FollowService followService;
 
     /**
      * 用户注册
      *
-     * @param userRegisterRequest
-     * @return
+     * @param userRegisterRequest 用户注册请求
+     * @param request HTTP请求对象
+     * @return 注册结果
      */
+    @Operation(summary = "用户注册", description = "用户注册接口")
     @PostMapping("/register")
-    public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
+    public BaseResponse<UserRegisterVO> userRegister(@RequestBody UserRegisterRequest userRegisterRequest,
+                                                     HttpServletRequest request) {
         if (userRegisterRequest == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请求参数为空");
         }
-        String userAccount = userRegisterRequest.getUserAccount();
-        String userPassword = userRegisterRequest.getUserPassword();
-        String checkPassword = userRegisterRequest.getCheckPassword();
-        if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)) {
-            return null;
-        }
-        long result = userService.userRegister(userAccount, userPassword, checkPassword);
-        return ResultUtils.success(result);
+
+        Long userId = userService.userRegister(userRegisterRequest, request);
+
+        UserRegisterVO userRegisterVO = new UserRegisterVO();
+        userRegisterVO.setUserId(userId);
+
+        return ResultUtils.success(userRegisterVO, "注册成功");
     }
 
     /**
      * 用户登录
      *
-     * @param userLoginRequest
-     * @param request
-     * @return
+     * @param userLoginRequest 用户登录请求
+     * @param request HTTP请求对象
+     * @return 登录结果
      */
+    @Operation(summary = "用户登录", description = "用户登录接口")
     @PostMapping("/login")
-    public BaseResponse<LoginUserVO> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
+    public BaseResponse<LoginUserVO> userLogin(@RequestBody UserLoginRequest userLoginRequest,
+                                               HttpServletRequest request) {
         if (userLoginRequest == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请求参数为空");
         }
-        String userAccount = userLoginRequest.getUserAccount();
-        String userPassword = userLoginRequest.getUserPassword();
-        if (StringUtils.isAnyBlank(userAccount, userPassword)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        LoginUserVO loginUserVO = userService.userLogin(userAccount, userPassword, request);
-        return ResultUtils.success(loginUserVO);
-    }
 
+        LoginUserVO loginUserVO = userService.userLogin(userLoginRequest, request);
+        return ResultUtils.success(loginUserVO, "登录成功");
+    }
 
     /**
      * 用户注销
      *
-     * @param request
-     * @return
+     * @param request HTTP请求对象
+     * @return 注销结果
      */
+    @Operation(summary = "用户注销", description = "用户注销接口")
     @PostMapping("/logout")
     public BaseResponse<Boolean> userLogout(HttpServletRequest request) {
-        if (request == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        boolean result = userService.userLogout(request);
-        return ResultUtils.success(result);
+        Boolean result = userService.userLogout(request);
+        return ResultUtils.success(result, "注销成功");
     }
 
     /**
-     * 获取当前登录用户
+     * 获取当前用户信息
      *
-     * @param request
-     * @return
+     * @param request HTTP请求对象
+     * @return 当前用户信息
      */
-    @GetMapping("/get/login")
-    public BaseResponse<LoginUserVO> getLoginUser(HttpServletRequest request) {
-        User user = userService.getLoginUser(request);
-        return ResultUtils.success(userService.getLoginUserVO(user));
+    @Operation(summary = "获取当前用户信息", description = "获取当前登录用户的详细信息")
+    @RequireLogin
+    @GetMapping("/current")
+    public BaseResponse<LoginUserVO> getCurrentUser(HttpServletRequest request) {
+        LoginUserVO currentUser = userService.getCurrentUser(request);
+        return ResultUtils.success(currentUser, "获取成功");
     }
-
-    // endregion
-
-    // region 增删改查
-
-    /**
-     * 创建用户
-     *
-     * @param userAddRequest
-     * @param request
-     * @return
-     */
-    @PostMapping("/add")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Long> addUser(@RequestBody UserAddRequest userAddRequest, HttpServletRequest request) {
-        if (userAddRequest == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        User user = new User();
-        BeanUtils.copyProperties(userAddRequest, user);
-        // 默认密码 12345678
-        String defaultPassword = "12345678";
-        String encryptPassword = DigestUtils.md5DigestAsHex((SALT + defaultPassword).getBytes());
-        user.setUserPassword(encryptPassword);
-        boolean result = userService.save(user);
-        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-        return ResultUtils.success(user.getId());
-    }
-
-    /**
-     * 删除用户
-     *
-     * @param deleteRequest
-     * @param request
-     * @return
-     */
-    @PostMapping("/delete")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Boolean> deleteUser(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
-        if (deleteRequest == null || deleteRequest.getId() <= 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        boolean b = userService.removeById(deleteRequest.getId());
-        return ResultUtils.success(b);
-    }
-
-    /**
-     * 更新用户
-     *
-     * @param userUpdateRequest
-     * @param request
-     * @return
-     */
-    @PostMapping("/update")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Boolean> updateUser(@RequestBody UserUpdateRequest userUpdateRequest,
-            HttpServletRequest request) {
-        if (userUpdateRequest == null || userUpdateRequest.getId() == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        User user = new User();
-        BeanUtils.copyProperties(userUpdateRequest, user);
-        boolean result = userService.updateById(user);
-        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-        return ResultUtils.success(true);
-    }
-
-    /**
-     * 根据 id 获取用户（仅管理员）
-     *
-     * @param id
-     * @param request
-     * @return
-     */
-    @GetMapping("/get")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<User> getUserById(long id, HttpServletRequest request) {
-        if (id <= 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        User user = userService.getById(id);
-        ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR);
-        return ResultUtils.success(user);
-    }
-
-    /**
-     * 根据 id 获取包装类
-     *
-     * @param id
-     * @param request
-     * @return
-     */
-    @GetMapping("/get/vo")
-    public BaseResponse<UserVO> getUserVOById(long id, HttpServletRequest request) {
-        BaseResponse<User> response = getUserById(id, request);
-        User user = response.getData();
-        return ResultUtils.success(userService.getUserVO(user));
-    }
-
-    /**
-     * 分页获取用户列表（仅管理员）
-     *
-     * @param userQueryRequest
-     * @param request
-     * @return
-     */
-    @PostMapping("/list/page")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Page<User>> listUserByPage(@RequestBody UserQueryRequest userQueryRequest,
-            HttpServletRequest request) {
-        long current = userQueryRequest.getCurrent();
-        long size = userQueryRequest.getPageSize();
-        Page<User> userPage = userService.page(new Page<>(current, size),
-                userService.getQueryWrapper(userQueryRequest));
-        return ResultUtils.success(userPage);
-    }
-
-    /**
-     * 分页获取用户封装列表
-     *
-     * @param userQueryRequest
-     * @param request
-     * @return
-     */
-    @PostMapping("/list/page/vo")
-    public BaseResponse<Page<UserVO>> listUserVOByPage(@RequestBody UserQueryRequest userQueryRequest,
-            HttpServletRequest request) {
-        if (userQueryRequest == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        long current = userQueryRequest.getCurrent();
-        long size = userQueryRequest.getPageSize();
-        // 限制爬虫
-        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
-        Page<User> userPage = userService.page(new Page<>(current, size),
-                userService.getQueryWrapper(userQueryRequest));
-        Page<UserVO> userVOPage = new Page<>(current, size, userPage.getTotal());
-        List<UserVO> userVO = userService.getUserVO(userPage.getRecords());
-        userVOPage.setRecords(userVO);
-        return ResultUtils.success(userVOPage);
-    }
-
-    // endregion
 
     /**
      * 更新个人信息
      *
-     * @param userUpdateMyRequest
-     * @param request
-     * @return
+     * @param userUpdateRequest 用户信息更新请求
+     * @param request HTTP请求对象
+     * @return 更新结果
      */
-    @PostMapping("/update/my")
-    public BaseResponse<Boolean> updateMyUser(@RequestBody UserUpdateMyRequest userUpdateMyRequest,
-            HttpServletRequest request) {
-        if (userUpdateMyRequest == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+    @Operation(summary = "更新个人信息", description = "更新当前登录用户的个人信息")
+    @RequireLogin
+    @PutMapping("/profile")
+    public BaseResponse<Boolean> updateProfile(@RequestBody UserUpdateRequest userUpdateRequest,
+                                               HttpServletRequest request) {
+        if (userUpdateRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请求参数为空");
         }
-        User loginUser = userService.getLoginUser(request);
-        User user = new User();
-        BeanUtils.copyProperties(userUpdateMyRequest, user);
-        user.setId(loginUser.getId());
-        boolean result = userService.updateById(user);
-        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-        return ResultUtils.success(true);
+
+        Boolean result = userService.updateProfile(userUpdateRequest, request);
+        return ResultUtils.success(result, "更新成功");
+    }
+
+    /**
+     * 修改密码
+     *
+     * @param passwordUpdateRequest 密码修改请求
+     * @param request HTTP请求对象
+     * @return 修改结果
+     */
+    @Operation(summary = "修改密码", description = "修改当前登录用户的密码")
+    @RequireLogin
+    @PutMapping("/password")
+    public BaseResponse<Boolean> updatePassword(@RequestBody PasswordUpdateRequest passwordUpdateRequest,
+                                                HttpServletRequest request) {
+        if (passwordUpdateRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请求参数为空");
+        }
+
+        Boolean result = userService.updatePassword(passwordUpdateRequest, request);
+        return ResultUtils.success(result, "密码修改成功");
+    }
+
+    /**
+     * 关注用户
+     *
+     * @param userId 被关注用户ID
+     * @param request HTTP请求对象
+     * @return 关注结果
+     */
+    @Operation(summary = "关注用户", description = "关注指定用户")
+    @RequireLogin
+    @PostMapping("/{userId}/follow")
+    public BaseResponse<Boolean> followUser(@PathVariable Long userId,
+                                            HttpServletRequest request) {
+        Boolean result = followService.followUser(userId, request);
+        return ResultUtils.success(result, "关注成功");
+    }
+
+    /**
+     * 取消关注
+     *
+     * @param userId 被关注用户ID
+     * @param request HTTP请求对象
+     * @return 取消关注结果
+     */
+    @Operation(summary = "取消关注", description = "取消关注指定用户")
+    @RequireLogin
+    @DeleteMapping("/{userId}/follow")
+    public BaseResponse<Boolean> unfollowUser(@PathVariable Long userId,
+                                              HttpServletRequest request) {
+        Boolean result = followService.unfollowUser(userId, request);
+        return ResultUtils.success(result, "取消关注成功");
+    }
+
+    /**
+     * 获取关注列表
+     *
+     * @param userId 用户ID
+     * @param current 当前页码
+     * @param size 每页大小
+     * @return 关注列表
+     */
+    @Operation(summary = "获取关注列表", description = "获取指定用户的关注列表")
+    @GetMapping("/{userId}/following")
+    public BaseResponse<PageVO<UserVO>> getFollowingList(@PathVariable Long userId,
+                                                         @RequestParam(defaultValue = "1") int current,
+                                                         @RequestParam(defaultValue = "10") int size) {
+        PageVO<UserVO> result = followService.getFollowingList(userId, current, size);
+        return ResultUtils.success(result, "获取成功");
+    }
+
+    /**
+     * 获取粉丝列表
+     *
+     * @param userId 用户ID
+     * @param current 当前页码
+     * @param size 每页大小
+     * @return 粉丝列表
+     */
+    @Operation(summary = "获取粉丝列表", description = "获取指定用户的粉丝列表")
+    @GetMapping("/{userId}/followers")
+    public BaseResponse<PageVO<UserVO>> getFollowerList(@PathVariable Long userId,
+                                                        @RequestParam(defaultValue = "1") int current,
+                                                        @RequestParam(defaultValue = "10") int size) {
+        PageVO<UserVO> result = followService.getFollowerList(userId, current, size);
+        return ResultUtils.success(result, "获取成功");
+    }
+
+    /**
+     * 获取用户公开信息
+     *
+     * @param userId 用户ID
+     * @return 用户公开信息
+     */
+    @Operation(summary = "获取用户公开信息", description = "获取指定用户的公开信息")
+    @GetMapping("/{userId}")
+    public BaseResponse<UserVO> getUserPublicInfo(@PathVariable Long userId) {
+        UserVO userVO = userService.getUserPublicInfo(userId);
+        return ResultUtils.success(userVO, "获取成功");
     }
 }

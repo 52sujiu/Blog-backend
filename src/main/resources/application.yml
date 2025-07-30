@@ -11,6 +11,10 @@ spring:
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
+  # Jackson 时间配置
+  jackson:
+    time-zone: Asia/Shanghai
+    date-format: yyyy-MM-dd HH:mm:ss
   # session 配置
   session:
     # todo 取消注释开启分布式 session（须先配置 Redis）
@@ -20,9 +24,9 @@ spring:
   # 数据库配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/my_db
+    url: jdbc:mysql://localhost:3306/blog_system?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8
     username: root
-    password: rootroot
+    password: adminadmin
   # Redis 配置
   # todo 需替换配置，然后取消注释
 #  redis:
@@ -42,8 +46,9 @@ spring:
     multipart:
       # 大小限制
       max-file-size: 10MB
+      max-request-size: 50MB
 server:
-  address: 0.0.0.0
+  address: 127.0.0.1
   port: 8101
   servlet:
     context-path: /api
@@ -51,32 +56,26 @@ server:
     session:
       cookie:
         max-age: 2592000
+  # 服务器基础URL配置
+  base-url: http://localhost:8101
 mybatis-plus:
   configuration:
-    map-underscore-to-camel-case: false
+    # 开启驼峰命名转换
+    map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   global-config:
     db-config:
-      logic-delete-field: isDelete # 全局逻辑删除的实体字段名
+      logic-delete-field: deleted # 全局逻辑删除的实体字段名
       logic-delete-value: 1 # 逻辑已删除值（默认为 1）
       logic-not-delete-value: 0 # 逻辑未删除值（默认为 0）
 
-# 对象存储
-# todo 需替换配置
-cos:
-  client:
-    accessKey: xxx
-    secretKey: xxx
-    region: xxx
-    bucket: xxx
 # 接口文档配置
 knife4j:
   enable: true
-  openapi:
-    title: "接口文档"
-    version: 1.0
-    group:
-      default:
-        api-rule: package
-        api-rule-resources:
-          - com.sujiu.blog.controller
+  setting:
+    language: zh_cn
+
+# 文件上传配置
+file:
+  upload:
+    path: uploads/

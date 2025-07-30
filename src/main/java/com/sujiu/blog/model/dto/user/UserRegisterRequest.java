@@ -4,19 +4,32 @@ import java.io.Serializable;
 import lombok.Data;
 
 /**
- * 用户注册请求体
+ * 用户注册请求 - 严格按照数据模型文档设计
  *
- * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
- * @from <a href="https://yupi.icu">编程导航知识星球</a>
+ * @author sujiu
  */
 @Data
 public class UserRegisterRequest implements Serializable {
 
-    private static final long serialVersionUID = 3191241716373120793L;
+    /**
+     * 用户名，3-20字符，字母数字下划线
+     */
+    private String username;
 
-    private String userAccount;
+    /**
+     * 邮箱地址
+     */
+    private String email;
 
-    private String userPassword;
+    /**
+     * 密码，6-20字符
+     */
+    private String password;
 
-    private String checkPassword;
+    /**
+     * 确认密码
+     */
+    private String confirmPassword;
+
+    private static final long serialVersionUID = 1L;
 }

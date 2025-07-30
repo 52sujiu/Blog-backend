@@ -9,7 +9,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/my_db
     username: root
-    password: rootroot
+    password: adminadmin
   # Redis 配置
   redis:
     database: 1
@@ -28,3 +28,10 @@ knife4j:
     enable: true
     username: root
     password: 123456
+
+# API配置 - 生产环境
+api:
+  base-url: https://api.sujiu.com/api
+  server:
+    dev-url: https://api.sujiu.com/api
+    prod-url: https://api.sujiu.com/api

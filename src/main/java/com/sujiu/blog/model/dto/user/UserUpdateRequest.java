@@ -4,37 +4,52 @@ import java.io.Serializable;
 import lombok.Data;
 
 /**
- * 用户更新请求
+ * 用户信息更新请求 - 严格按照数据模型文档设计
  *
- * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
- * @from <a href="https://yupi.icu">编程导航知识星球</a>
+ * @author sujiu
  */
 @Data
 public class UserUpdateRequest implements Serializable {
-    /**
-     * id
-     */
-    private Long id;
 
     /**
-     * 用户昵称
+     * 昵称，1-50字符
      */
-    private String userName;
+    private String nickname;
 
     /**
-     * 用户头像
+     * 头像URL
      */
-    private String userAvatar;
+    private String avatar;
 
     /**
-     * 简介
+     * 手机号
      */
-    private String userProfile;
+    private String phone;
 
     /**
-     * 用户角色：user/admin/ban
+     * 性别：0-未知，1-男，2-女
      */
-    private String userRole;
+    private Integer gender;
+
+    /**
+     * 生日，格式：yyyy-MM-dd
+     */
+    private String birthday;
+
+    /**
+     * 个人简介，最多500字符
+     */
+    private String bio;
+
+    /**
+     * 个人网站
+     */
+    private String website;
+
+    /**
+     * 所在地
+     */
+    private String location;
 
     private static final long serialVersionUID = 1L;
 }

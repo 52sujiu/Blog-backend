@@ -7,14 +7,16 @@
 CREATE DATABASE IF NOT EXISTS blog_system DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE blog_system;
 
--- ==================== 用户相关表 ====================
+-- ==================== 禁用外键检查 ====================
+SET FOREIGN_KEY_CHECKS = 0;
 
+-- ==================== 用户相关表 ====================
+    
 -- 1. 用户基础信息表
 DROP TABLE IF EXISTS `sys_user`;
 CREATE TABLE `sys_user` (
     `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '用户ID',
     `username` VARCHAR(50) NOT NULL COMMENT '用户名',
-    `email` VARCHAR(100) NOT NULL COMMENT '邮箱',
     `password` VARCHAR(100) NOT NULL COMMENT '密码(BCrypt加密)',
     `nickname` VARCHAR(50) DEFAULT NULL COMMENT '昵称',
     `avatar` VARCHAR(255) DEFAULT NULL COMMENT '头像URL',
@@ -330,7 +332,7 @@ GROUP BY u.id;
 -- ==================== 创建存储过程 ====================
 
 -- 更新文章统计数据的存储过程
-DELIMITER $$
+DROP PROCEDURE IF EXISTS `UpdateArticleStats`;
 CREATE PROCEDURE `UpdateArticleStats`(IN article_id BIGINT)
 BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -358,11 +360,10 @@ BEGIN
     WHERE `id` = article_id;
 
     COMMIT;
-END$$
-DELIMITER ;
+END;
 
 -- 更新分类文章数量的存储过程
-DELIMITER $$
+DROP PROCEDURE IF EXISTS `UpdateCategoryArticleCount`;
 CREATE PROCEDURE `UpdateCategoryArticleCount`(IN category_id BIGINT)
 BEGIN
     UPDATE `blog_category`
@@ -371,11 +372,10 @@ BEGIN
         WHERE `category_id` = category_id AND `deleted` = 0 AND `status` = 2
     )
     WHERE `id` = category_id;
-END$$
-DELIMITER ;
+END;
 
 -- 更新标签文章数量的存储过程
-DELIMITER $$
+DROP PROCEDURE IF EXISTS `UpdateTagArticleCount`;
 CREATE PROCEDURE `UpdateTagArticleCount`(IN tag_id BIGINT)
 BEGIN
     UPDATE `blog_tag`
@@ -385,13 +385,12 @@ BEGIN
         WHERE at.tag_id = tag_id AND a.deleted = 0 AND a.status = 2
     )
     WHERE `id` = tag_id;
-END$$
-DELIMITER ;
+END;
 
 -- ==================== 创建触发器 ====================
 
 -- 文章点赞后更新统计
-DELIMITER $$
+DROP TRIGGER IF EXISTS `tr_article_like_after_insert`;
 CREATE TRIGGER `tr_article_like_after_insert`
 AFTER INSERT ON `blog_like`
 FOR EACH ROW
@@ -401,11 +400,10 @@ BEGIN
         SET `like_count` = `like_count` + 1
         WHERE `id` = NEW.target_id;
     END IF;
-END$$
-DELIMITER ;
+END;
 
 -- 文章取消点赞后更新统计
-DELIMITER $$
+DROP TRIGGER IF EXISTS `tr_article_like_after_delete`;
 CREATE TRIGGER `tr_article_like_after_delete`
 AFTER DELETE ON `blog_like`
 FOR EACH ROW
@@ -415,11 +413,10 @@ BEGIN
         SET `like_count` = `like_count` - 1
         WHERE `id` = OLD.target_id;
     END IF;
-END$$
-DELIMITER ;
+END;
 
 -- 评论审核通过后更新文章评论数
-DELIMITER $$
+DROP TRIGGER IF EXISTS `tr_comment_after_update`;
 CREATE TRIGGER `tr_comment_after_update`
 AFTER UPDATE ON `blog_comment`
 FOR EACH ROW
@@ -433,8 +430,7 @@ BEGIN
         SET `comment_count` = `comment_count` - 1
         WHERE `id` = NEW.article_id;
     END IF;
-END$$
-DELIMITER ;
+END;
 
 -- ==================== 创建索引优化 ====================
 
@@ -444,6 +440,9 @@ CREATE INDEX `idx_article_category_status_time` ON `blog_article` (`category_id`
 CREATE INDEX `idx_comment_article_status_time` ON `blog_comment` (`article_id`, `status`, `created_time` DESC);
 CREATE INDEX `idx_like_target_user` ON `blog_like` (`target_id`, `target_type`, `user_id`);
 CREATE INDEX `idx_view_article_time` ON `blog_article_view` (`article_id`, `view_time`);
+
+-- ==================== 重新启用外键检查 ====================
+SET FOREIGN_KEY_CHECKS = 1;
 
 -- ==================== 数据库设计说明 ====================
 

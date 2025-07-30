@@ -10,76 +10,114 @@ import java.util.Date;
 import lombok.Data;
 
 /**
- * 用户
+ * 用户实体 - 严格按照数据模型文档设计
  *
- * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
- * @from <a href="https://yupi.icu">编程导航知识星球</a>
+ * @author sujiu
  */
-@TableName(value = "user")
+@TableName(value = "sys_user")
 @Data
 public class User implements Serializable {
 
     /**
-     * id
+     * 用户ID
      */
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
     /**
-     * 用户账号
+     * 用户名，3-20字符，字母数字下划线
      */
-    private String userAccount;
+    private String username;
 
     /**
      * 用户密码
      */
-    private String userPassword;
+    private String password;
 
     /**
-     * 开放平台id
+     * 邮箱地址
      */
-    private String unionId;
+    private String email;
 
     /**
-     * 公众号openId
+     * 昵称，1-50字符
      */
-    private String mpOpenId;
+    private String nickname;
 
     /**
-     * 用户昵称
+     * 头像URL
      */
-    private String userName;
+    private String avatar;
 
     /**
-     * 用户头像
+     * 手机号，11位数字
      */
-    private String userAvatar;
+    private String phone;
 
     /**
-     * 用户简介
+     * 性别：0-未知，1-男，2-女
      */
-    private String userProfile;
+    private Integer gender;
 
     /**
-     * 用户角色：user/admin/ban
+     * 生日，格式：yyyy-MM-dd
      */
-    private String userRole;
+    private Date birthday;
+
+    /**
+     * 个人简介，最多500字符
+     */
+    private String bio;
+
+    /**
+     * 个人网站
+     */
+    private String website;
+
+    /**
+     * 所在地
+     */
+    private String location;
+
+    /**
+     * 用户角色：user, admin, ban
+     */
+    private String role;
+
+    /**
+     * 用户状态：1-正常，0-禁用，-1-删除
+     */
+    private Integer status;
+
+    /**
+     * 最后登录时间
+     */
+    @TableField("last_login_time")
+    private Date lastLoginTime;
+
+    /**
+     * 最后登录IP
+     */
+    @TableField("last_login_ip")
+    private String lastLoginIp;
 
     /**
      * 创建时间
      */
-    private Date createTime;
+    @TableField("created_time")
+    private Date createdTime;
 
     /**
      * 更新时间
      */
-    private Date updateTime;
+    @TableField("updated_time")
+    private Date updatedTime;
 
     /**
      * 是否删除
      */
     @TableLogic
-    private Integer isDelete;
+    private Integer deleted;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

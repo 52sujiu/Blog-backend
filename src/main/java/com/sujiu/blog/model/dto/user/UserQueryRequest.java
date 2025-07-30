@@ -1,48 +1,57 @@
 package com.sujiu.blog.model.dto.user;
 
 import com.sujiu.blog.common.PageRequest;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
+import java.util.Date;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * 用户查询请求
+ * 管理员用户查询请求
  *
- * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
- * @from <a href="https://yupi.icu">编程导航知识星球</a>
+ * @author sujiu
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
+@Schema(description = "管理员用户查询请求")
 public class UserQueryRequest extends PageRequest implements Serializable {
+
     /**
-     * id
+     * 用户ID
      */
+    @Schema(description = "用户ID")
     private Long id;
 
     /**
-     * 开放平台id
+     * 搜索关键词（用户名、邮箱、昵称）
      */
-    private String unionId;
+    @Schema(description = "搜索关键词（用户名、邮箱、昵称）")
+    private String keyword;
 
     /**
-     * 公众号openId
+     * 用户状态：1-正常，0-禁用，-1-删除
      */
-    private String mpOpenId;
+    @Schema(description = "用户状态：1-正常，0-禁用，-1-删除")
+    private Integer status;
 
     /**
-     * 用户昵称
+     * 用户角色：user-普通用户，admin-管理员，ban-封禁用户
      */
-    private String userName;
+    @Schema(description = "用户角色：user-普通用户，admin-管理员，ban-封禁用户")
+    private String role;
 
     /**
-     * 简介
+     * 注册开始时间
      */
-    private String userProfile;
+    @Schema(description = "注册开始时间")
+    private Date startTime;
 
     /**
-     * 用户角色：user/admin/ban
+     * 注册结束时间
      */
-    private String userRole;
+    @Schema(description = "注册结束时间")
+    private Date endTime;
 
     private static final long serialVersionUID = 1L;
 }

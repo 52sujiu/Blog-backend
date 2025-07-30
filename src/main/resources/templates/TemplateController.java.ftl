@@ -150,7 +150,7 @@ public class ${upperDataKey}Controller {
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Page<${upperDataKey}>> list${upperDataKey}ByPage(@RequestBody ${upperDataKey}QueryRequest ${dataKey}QueryRequest) {
         long current = ${dataKey}QueryRequest.getCurrent();
-        long size = ${dataKey}QueryRequest.getPageSize();
+        long size = ${dataKey}QueryRequest.getSize();
         // 查询数据库
         Page<${upperDataKey}> ${dataKey}Page = ${dataKey}Service.page(new Page<>(current, size),
                 ${dataKey}Service.getQueryWrapper(${dataKey}QueryRequest));
@@ -168,7 +168,7 @@ public class ${upperDataKey}Controller {
     public BaseResponse<Page<${upperDataKey}VO>> list${upperDataKey}VOByPage(@RequestBody ${upperDataKey}QueryRequest ${dataKey}QueryRequest,
                                                                HttpServletRequest request) {
         long current = ${dataKey}QueryRequest.getCurrent();
-        long size = ${dataKey}QueryRequest.getPageSize();
+        long size = ${dataKey}QueryRequest.getSize();
         // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
         // 查询数据库

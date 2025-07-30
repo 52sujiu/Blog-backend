@@ -1,0 +1,22 @@
+-- 用户表
+CREATE TABLE IF NOT EXISTS user (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    nickname VARCHAR(50),
+    avatar VARCHAR(255),
+    phone VARCHAR(20),
+    gender INTEGER DEFAULT 0,
+    birthday DATE,
+    bio TEXT,
+    website VARCHAR(255),
+    location VARCHAR(100),
+    role VARCHAR(20) NOT NULL DEFAULT 'user',
+    status INTEGER NOT NULL DEFAULT 1,
+    last_login_time TIMESTAMP,
+    last_login_ip VARCHAR(50),
+    create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    is_delete INTEGER NOT NULL DEFAULT 0
+);
